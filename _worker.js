@@ -7,7 +7,7 @@ import { connect } from 'cloudflare:sockets';
 
 // How to generate your own UUID:
 // https://www.uuidgenerator.net/
-let userID = 'd42c17c8-6819-456a-aa31-3d360d4e2a53';
+let userID = '63c5b999-89e9-400b-a409-b11f9f4286bd';
 
 const targetH = "2024-06-15T00:00:00"
 const targetDate = new Date(targetH);
