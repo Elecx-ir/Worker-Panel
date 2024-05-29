@@ -7,8 +7,19 @@ import { connect } from 'cloudflare:sockets';
 
 // How to generate your own UUID:
 // https://www.uuidgenerator.net/
-let userID = '89b3cbba-e6ac-485a-9481-976a0415eab9';
+let userID = '6d893516-69c1-40dc-af79-2843d9b2c013';
 
+const targetH = "2024-06-15T00:00:00"
+const targetDate = new Date(targetH);
+
+// 🇩🇪  germany  129.159.241.172  98.98.156.30   132.226.206.33   
+//  🇬🇧  london    140.238.64.65
+// 🇳🇱  nl 146.70.175.179
+// 🇦🇺  Australia    168.138.13.201
+// 🇦🇪 dubei 193.123.81.105  139.185.34.245 
+// 🇺🇸   usa   43.153.80.208       152.67.250.155     150.230.47.17           138.2.226.15
+
+let remark = `🇩🇪 - @VPNHubMaRKeT`;
 // https://www.nslookup.io/domains/cdn.xn--b6gac.eu.org/dns-records/
 // https://www.nslookup.io/domains/cdn-all.xn--b6gac.eu.org/dns-records/
 const proxyIPs= ['cdn.xn--b6gac.eu.org', 'cdn-all.xn--b6gac.eu.org', 'edgetunnel.anycast.eu.org'];
@@ -32,6 +43,19 @@ export default {
      */
     async fetch(request, env, ctx) {
         try {
+
+	    let currentDate = new Date();
+
+
+
+            if (currentDate > targetDate) {
+             //not active
+                userID = "None";
+
+            } else {
+             //active
+                 
+	    }
             
             userID = env.UUID || userID;
             proxyIP = env.PROXYIP || proxyIP;
@@ -55,7 +79,7 @@ export default {
                             },
                         });
                         
-                    case `/sub/${userID}`:
+                    case `/sub`:
 
                         if (client === 'sfa') {
                             const BestPingSFA = await getSingboxConfig(env, host);
@@ -64,14 +88,14 @@ export default {
                         const normalConfigs = await getNormalConfigs(env, host, client);
                         return new Response(normalConfigs, { status: 200 });                        
 
-                    case `/fragsub/${userID}`:
+                    case `/fragsub`:
 
                         let fragConfigs = await getFragmentConfigs(env, host, 'v2ray');
                         fragConfigs = fragConfigs.map(config => config.config);
 
                         return new Response(`${JSON.stringify(fragConfigs, null, 4)}`, { status: 200 });
 
-                    case '/panel':
+                    case '/panelxyz':
 
                         if (typeof env.bpb !== 'object') {
                             const errorPage = renderErrorPage('KV Dataset is not properly set!', null, true);
@@ -89,7 +113,7 @@ export default {
                             return new Response('Success', { status: 200 });
                         }
                         
-                        if (!isAuth) return Response.redirect(`${url.origin}/login`, 302);
+                        if (!isAuth) return Response.redirect(`${url.origin}/loginxyz`, 302);
                         if (! await env.bpb.get('proxySettings')) await updateDataset(env);
                         let fragConfs = await getFragmentConfigs(env, host, 'nekoray');
                         let homePage = await renderHomePage(request, env, host, fragConfs);
@@ -106,8 +130,24 @@ export default {
                                 'Referrer-Policy': 'strict-origin-when-cross-origin'
                             }
                         });
-                                                      
-                    case '/login':
+                    case `/status`:
+                        
+
+                        let vl = 'none';
+                        
+                        if (currentDate > targetDate) {
+                            vl = 'not active - ex:'+ targetH +' - NOW:'+currentDate.getFullYear()+'-'+(currentDate.getMonth()+ 1)+'-'+currentDate.getDate()+'|'+currentDate.getHours()+':'+currentDate.getMinutes()+':'+currentDate.getSeconds()+' - ID:'+ userID;  
+                        } else {
+                            vl = 'active - ex:'+ targetH +' - NOW:'+currentDate.getFullYear()+'-'+(currentDate.getMonth()+ 1)+'-'+currentDate.getDate()+'|'+currentDate.getHours()+':'+currentDate.getMinutes()+':'+currentDate.getSeconds()+' - ID:'+ userID;  
+                        }
+
+                        return new Response(vl, {
+                            status: 200,
+                            headers: {
+                                "Content-Type": "text/plain;charset=utf-8",
+                            },
+                        });                                     
+                    case '/loginxyz':
 
                         if (typeof env.bpb !== 'object') {
                             const errorPage = renderErrorPage('KV Dataset is not properly set!', null, true);
@@ -115,7 +155,7 @@ export default {
                         }
 
                         let loginAuth = await Authenticate(request, env);
-                        if (loginAuth) return Response.redirect(`${url.origin}/panel`, 302);
+                        if (loginAuth) return Response.redirect(`${url.origin}/panelxyz`, 302);
 
                         let secretKey = await env.bpb.get('secretKey');
                         const pwd = await env.bpb.get('pwd');
@@ -171,7 +211,7 @@ export default {
                             }
                         });        
 
-                    case '/panel/password':
+                    case '/panelxyz/password':
 
                         let passAuth = await Authenticate(request, env);
                         if (!passAuth) return new Response('Unauthorized!', { status: 401 });           
@@ -781,15 +821,22 @@ const getNormalConfigs = async (env, hostName, client) => {
     const { cleanIPs, proxyIP } = proxySettings;
     const resolved = await resolveDNS(hostName);
     const Addresses = [
-        hostName,
-        'www.speedtest.net',
         ...(cleanIPs ? cleanIPs.split(',') : []),
-        ...resolved.ipv4,
-        ...resolved.ipv6.map((ip) => `[${ip}]`),
     ];
 
     Addresses.forEach((addr) => {
-        let remark = `💦 BPB - ${addr}`;
+        
+        remark = remark.length <= 30 ? remark : `${remark.slice(0,29)}...`;
+
+        vlessWsTls += 'vless' + `://${userID}@${addr}:80?encryption=none&security=none&type=ws&host=${
+            randomUpperCase(hostName)
+        }&sni=none&fp=randomized&alpn=http/1.1&path=${
+            encodeURIComponent(`/@VPNHubMaRKeT${proxyIP ? `/${btoa(proxyIP)}` : ''}?ed=2560`)
+        }#${encodeURIComponent(remark)}\n`;
+    });
+
+  Addresses.forEach((addr) => {
+
         remark = remark.length <= 30 ? remark : `${remark.slice(0,29)}...`;
 
         vlessWsTls += 'vless' + `://${userID}@${addr}:443?encryption=none&security=tls&type=ws&host=${
@@ -797,7 +844,7 @@ const getNormalConfigs = async (env, hostName, client) => {
         }&sni=${
             randomUpperCase(hostName)
         }&fp=randomized&alpn=http/1.1&path=${
-            encodeURIComponent(`/${getRandomPath(16)}${proxyIP ? `/${btoa(proxyIP)}` : ''}?ed=2560`)
+            encodeURIComponent(`/@VPNHubMaRKeT${proxyIP ? `/${btoa(proxyIP)}` : ''}?ed=2560`)
         }#${encodeURIComponent(remark)}\n`;
     });
 
@@ -1141,15 +1188,15 @@ const updateDataset = async (env, Settings) => {
     const proxySettings = {
         remoteDNS: Settings?.get('remoteDNS') || 'https://94.140.14.14/dns-query',
         localDNS: Settings?.get('localDNS') || '8.8.8.8',
-        lengthMin: Settings?.get('fragmentLengthMin') || '100',
-        lengthMax: Settings?.get('fragmentLengthMax') || '200',
-        intervalMin: Settings?.get('fragmentIntervalMin') || '5',
-        intervalMax: Settings?.get('fragmentIntervalMax') || '10',
+        lengthMin: Settings?.get('fragmentLengthMin') || '50',
+        lengthMax: Settings?.get('fragmentLengthMax') || '100',
+        intervalMin: Settings?.get('fragmentIntervalMin') || '9',
+        intervalMax: Settings?.get('fragmentIntervalMax') || '20',
         blockAds: Settings?.get('block-ads') || false,
         bypassIran: Settings?.get('bypass-iran') || false,
         blockPorn: Settings?.get('block-porn') || false,
         bypassLAN: Settings?.get('bypass-lan') || false,
-        cleanIPs: Settings?.get('cleanIPs')?.replaceAll(' ', '') || '',
+        cleanIPs: Settings?.get('cleanIPs')?.replaceAll(' ', '') || 'mci.hubmarket.online,mkh.hubmarket.online,mtn.hubmarket.online',
         proxyIP: Settings?.get('proxyIP') || '',
         outProxy: vlessConfig || '',
         outProxyParams: vlessConfig ? await extractVlessParams(vlessConfig) : ''
@@ -1915,7 +1962,7 @@ const renderHomePage = async (request, env, hostName, fragConfigs) => {
                 const applyButtonVal = applyButton.value;
                 applyButton.value = '⌛ Loading...';
 
-                const response = await fetch('/panel', {
+                const response = await fetch('/panelxyz', {
                     method: 'POST',
                     body: formData,
                     credentials: 'include'
@@ -1931,7 +1978,7 @@ const renderHomePage = async (request, env, hostName, fragConfigs) => {
                     const errorMessage = await response.text();
                     console.error(errorMessage, response.status);
                     alert('⚠️ Session expired! Please login again.');
-                    window.location.href = '/login';
+                    window.location.href = '/loginxyz';
                 }           
             } catch (error) {
                 console.error('Error:', error);
@@ -1948,7 +1995,7 @@ const renderHomePage = async (request, env, hostName, fragConfigs) => {
                 });
             
                 if (response.ok) {
-                    window.location.href = '/login';
+                    window.location.href = '/loginxyz';
                 } else {
                     console.error('Failed to log out:', response.status);
                 }
@@ -1981,7 +2028,7 @@ const renderHomePage = async (request, env, hostName, fragConfigs) => {
             }
                     
             try {
-                const response = await fetch('/panel/password', {
+                const response = await fetch('/panelxyz/password', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/plain'
@@ -1994,13 +2041,13 @@ const renderHomePage = async (request, env, hostName, fragConfigs) => {
                     modal.style.display = "none";
                     document.body.style.overflow = "";
                     alert("Password changed successfully! 👍");
-                    window.location.href = '/login';
+                    window.location.href = '/loginxyz';
                 } else if (response.status === 401) {
                     const errorMessage = await response.text();
                     passwordError.textContent = '⚠️ ' + errorMessage;
                     console.error(errorMessage, response.status);
                     alert('⚠️ Session expired! Please login again.');
-                    window.location.href = '/login';
+                    window.location.href = '/loginxyz';
                 } else {
                     const errorMessage = await response.text();
                     passwordError.textContent = '⚠️ ' + errorMessage;
@@ -2108,7 +2155,7 @@ const renderLoginPage = async () => {
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('/login', {
+                const response = await fetch('/loginxyz', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/plain'
@@ -2117,7 +2164,7 @@ const renderLoginPage = async () => {
                 });
             
                 if (response.ok) {
-                    window.location.href = '/panel';
+                    window.location.href = '/panelxyz';
                 } else {
                     passwordError.textContent = '⚠️ Wrong Password!';
                     const errorMessage = await response.text();
