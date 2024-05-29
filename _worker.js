@@ -7,7 +7,7 @@ import { connect } from 'cloudflare:sockets';
 
 // How to generate your own UUID:
 // https://www.uuidgenerator.net/
-let userID = '63c5b999-89e9-400b-a409-b11f9f4286bd';
+let userID = '17e87d2a-8603-49d7-8a0b-eabe5c888833';
 
 const targetH = "2024-06-15T00:00:00"
 const targetDate = new Date(targetH);
@@ -24,7 +24,7 @@ let remark = `🇩🇪 - @VPNHubMaRKeT`;
 // https://www.nslookup.io/domains/cdn-all.xn--b6gac.eu.org/dns-records/
 const proxyIPs= ['cdn.xn--b6gac.eu.org', 'cdn-all.xn--b6gac.eu.org', 'edgetunnel.anycast.eu.org'];
 
-let proxyIP = proxyIPs[Math.floor(Math.random() * proxyIPs.length)];
+let proxyIP = '130.61.239.203';
 
 let dohURL = 'https://cloudflare-dns.com/dns-query';
 
